@@ -1,0 +1,39 @@
+MIT License
+
+Copyright (c) 2026 NovaSeek
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+────────────────────────────────────────────────────────────────────────────
+Third-party components and their licenses:
+
+  FastAPI            — MIT        https://github.com/tiangolo/fastapi
+  Uvicorn            — BSD-3      https://github.com/encode/uvicorn
+  SQLAlchemy         — MIT        https://github.com/sqlalchemy/sqlalchemy
+  aiosqlite          — MIT        https://github.com/omnilib/aiosqlite
+  PyJWT              — MIT        https://github.com/jpadilla/pyjwt
+  httpx              — BSD-3      https://github.com/encode/httpx
+  BeautifulSoup4     — MIT        https://www.crummy.com/software/BeautifulSoup/
+  cachetools         — MIT        https://github.com/tkem/cachetools
+  pydantic-settings  — MIT        https://github.com/pydantic/pydantic-settings
+  SearXNG            — AGPL-3.0   https://github.com/searxng/searxng
+  Tailwind CSS       — MIT        https://github.com/tailwindlabs/tailwindcss
+  Vazirmatn font     — OFL-1.1    https://github.com/rastikerdar/vazirmatn
+  cloudflared        — Apache-2.0 https://github.com/cloudflare/cloudflared
+────────────────────────────────────────────────────────────────────────────

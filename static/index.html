@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaSeek — Search API</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+<link rel="stylesheet" href="/static/styles.css">
+<script>
+tailwind.config = { darkMode: ['class'], theme: { extend: {
+  fontFamily: { sans: ['Vazirmatn','Inter','system-ui','sans-serif'] },
+  colors: { brand: {50:'#eef2ff',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca'} }
+}}};
+</script>
+</head>
+<body class="min-h-screen font-sans transition-colors duration-300">
+
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="fixed top-0 inset-x-0 z-50 glass border-b border-white/10">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-2.5 group">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-fuchsia-500 grid place-items-center shadow-lg shadow-brand-500/30 group-hover:scale-110 transition-transform">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3" stroke-linecap="round"/></svg>
+      </div>
+      <span class="text-xl font-extrabold tracking-tight">Nova<span class="text-brand-500">Seek</span></span>
+    </a>
+    <div class="flex items-center gap-2">
+      <button id="langToggle" class="btn-ghost" title="Language / زبان">🌐 <span id="langLabel">EN</span></button>
+      <button id="themeToggle" class="btn-ghost" title="Theme"><span id="themeIcon">☀️</span></button>
+      <button id="navAuthBtn" class="btn-primary text-sm" data-i18n="nav_login">ورود / ثبت‌نام</button>
+      <button id="navDashBtn" class="btn-primary text-sm hidden" data-i18n="nav_dash">داشبورد</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════ HERO ══════════ -->
+<section id="landing" class="pt-32 pb-20 px-4 relative overflow-hidden">
+  <div class="blob blob-1"></div><div class="blob blob-2"></div>
+  <div class="max-w-5xl mx-auto text-center relative">
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm mb-6 fade-up">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span data-i18n="hero_badge">موتور جست‌وجوی محلی — نامحدود و بدون محدودیت نرخ</span>
+    </div>
+    <h1 class="text-4xl md:text-6xl font-black leading-tight mb-6 fade-up" style="animation-delay:.08s">
+      <span data-i18n="hero_t1">جست‌وجوی وب با یک</span>
+      <span class="bg-gradient-to-l from-brand-400 to-fuchsia-400 bg-clip-text text-transparent" data-i18n="hero_t2">API ساده</span>
+    </h1>
+    <p class="text-lg opacity-70 max-w-2xl mx-auto mb-10 fade-up" style="animation-delay:.15s" data-i18n="hero_sub">
+      NovaSeek روی SearXNG محلی اجرا می‌شود؛ بدون کلید گوگل، بدون سقف درخواست موتور، با سهمیه روزانه هوشمند برای هر کاربر.
+    </p>
+
+    <!-- live demo search box -->
+    <div class="max-w-2xl mx-auto glass rounded-2xl p-2 flex gap-2 fade-up" style="animation-delay:.22s">
+      <input id="heroQuery" class="flex-1 bg-transparent outline-none px-4 py-3" data-i18n-ph="hero_ph" placeholder="مثلاً: هوش مصنوعی چیست؟">
+      <select id="heroLang" class="bg-transparent outline-none px-2 text-sm rounded-xl">
+        <option value="auto">Auto</option><option value="fa">فارسی</option><option value="en">English</option><option value="all">All</option>
+      </select>
+      <button id="heroSearchBtn" class="btn-primary" data-i18n="hero_go">جست‌وجو</button>
+    </div>
+    <p class="text-xs opacity-50 mt-3 fade-up" style="animation-delay:.28s" data-i18n="hero_hint">برای استفاده از API کامل، ثبت‌نام کنید و کلید بسازید — ۱۰۰۰ درخواست رایگان هر روز</p>
+
+    <div id="heroResults" class="max-w-2xl mx-auto mt-6 text-start space-y-3 hidden"></div>
+  </div>
+</section>
+
+<!-- ══════════ FEATURES ══════════ -->
+<section class="max-w-6xl mx-auto px-4 pb-20 grid md:grid-cols-3 gap-5" id="features">
+  <div class="card fade-up"><div class="text-3xl mb-3">⚡</div><h3 class="font-bold text-lg mb-2" data-i18n="f1t">سرعت برق‌آسا</h3><p class="text-sm opacity-70" data-i18n="f1d">کش در حافظه با TTL، SQLite در حالت WAL و GZip — پاسخ تکراری در کسری از میلی‌ثانیه.</p></div>
+  <div class="card fade-up" style="animation-delay:.06s"><div class="text-3xl mb-3">♾️</div><h3 class="font-bold text-lg mb-2" data-i18n="f2t">موتور نامحدود</h3><p class="text-sm opacity-70" data-i18n="f2d">SearXNG خودمیزبان روی +۷۰ موتور جست‌وجو؛ بدون کلید، بدون CAPTCHA، بدون سقف. فالبک خودکار به DuckDuckGo.</p></div>
+  <div class="card fade-up" style="animation-delay:.12s"><div class="text-3xl mb-3">🔑</div><h3 class="font-bold text-lg mb-2" data-i18n="f3t">کلید API واقعی</h3><p class="text-sm opacity-70" data-i18n="f3d">هر کاربر تا ۱۰ کلید nvsk_ می‌سازد، لغو می‌کند و مصرف هر کلید را جدا می‌بیند.</p></div>
+  <div class="card fade-up"><div class="text-3xl mb-3">📊</div><h3 class="font-bold text-lg mb-2" data-i18n="f4t">سهمیه روزانه</h3><p class="text-sm opacity-70" data-i18n="f4d">۱۰۰۰ درخواست در روز برای هر کاربر که هر روز ساعت ۰۰:۰۰ UTC خودکار تمدید می‌شود.</p></div>
+  <div class="card fade-up" style="animation-delay:.06s"><div class="text-3xl mb-3">🛡️</div><h3 class="font-bold text-lg mb-2" data-i18n="f5t">پنل ادمین</h3><p class="text-sm opacity-70" data-i18n="f5d">مالک سرویس کاربران را می‌بیند، تعلیق/فعال می‌کند و سهمیه هرکدام را تغییر می‌دهد.</p></div>
+  <div class="card fade-up" style="animation-delay:.12s"><div class="text-3xl mb-3">🌗</div><h3 class="font-bold text-lg mb-2" data-i18n="f6t">دو زبانه و دو تم</h3><p class="text-sm opacity-70" data-i18n="f6d">فارسی (راست‌چین) و انگلیسی، دارک/لایت — انتخاب شما در مرورگر ذخیره می‌شود.</p></div>
+</section>
+
+<!-- ══════════ API DOCS ══════════ -->
+<section class="max-w-5xl mx-auto px-4 pb-24">
+  <h2 class="text-3xl font-black text-center mb-10" data-i18n="docs_title">مستندات API</h2>
+  <div class="card mb-5">
+    <div class="flex items-center gap-3 mb-3"><span class="badge bg-emerald-500/15 text-emerald-400">GET</span><code class="text-sm font-bold">/api/v1/search</code>
+      <button class="copy-btn ms-auto" data-copy="/api/v1/search?q=hello&lang=fa">📋 <span data-i18n="copy">کپی</span></button></div>
+    <p class="text-sm opacity-70 mb-4" data-i18n="docs_search_d">جست‌وجوی وب. احراز هویت با هدر X-API-Key انجام می‌شود.</p>
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+      <thead><tr class="opacity-60 text-start"><th class="p-2 text-start" data-i18n="th_param">پارامتر</th><th class="p-2 text-start" data-i18n="th_type">نوع</th><th class="p-2 text-start" data-i18n="th_desc">توضیح</th></tr></thead>
+      <tbody class="[&_td]:p-2 [&_tr]:border-t [&_tr]:border-white/5">
+        <tr><td><code>q</code></td><td>string *</td><td data-i18n="p_q">عبارت جست‌وجو (الزامی)</td></tr>
+        <tr><td><code>lang</code></td><td>string</td><td data-i18n="p_lang">زبان نتایج: fa, en, all, auto</td></tr>
+        <tr><td><code>site</code></td><td>string</td><td data-i18n="p_site">محدودسازی به یک سایت، مثل wikipedia.org</td></tr>
+        <tr><td><code>count</code></td><td>int</td><td data-i18n="p_count">تعداد نتایج (۱ تا ۵۰، پیش‌فرض ۱۰)</td></tr>
+      </tbody></table></div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-5">
+    <div class="card"><h4 class="font-bold mb-3">cURL</h4>
+      <pre class="codeblock" dir="ltr">curl -H "X-API-Key: nvsk_YOUR_KEY" \
+  "<span class="text-brand-400">BASE_URL</span>/api/v1/search?q=AI&lang=fa&count=5"</pre>
+      <button class="copy-btn mt-3" data-copy-target="curlCode">📋 <span data-i18n="copy">کپی</span></button></div>
+    <div class="card"><h4 class="font-bold mb-3">Python</h4>
+      <pre class="codeblock" dir="ltr">import httpx
+r = httpx.get("BASE_URL/api/v1/search",
+  params={"q": "AI", "lang": "fa"},
+  headers={"X-API-Key": "nvsk_YOUR_KEY"})
+print(r.json()["results"])</pre></div>
+  </div>
+  <div class="card mt-5">
+    <div class="flex items-center gap-3 mb-3"><span class="badge bg-emerald-500/15 text-emerald-400">GET</span><code class="text-sm font-bold">/api/v1/usage</code></div>
+    <p class="text-sm opacity-70" data-i18n="docs_usage_d">مشاهده سهمیه و مصرف امروز با همان کلید API.</p>
+  </div>
+</section>
+
+<!-- ══════════ AUTH ══════════ -->
+<section id="authSection" class="max-w-md mx-auto px-4 pb-24 hidden">
+  <div class="card">
+    <div class="flex rounded-xl overflow-hidden border border-white/10 mb-6">
+      <button id="tabLogin" class="flex-1 py-2.5 font-bold bg-brand-600 text-white" data-i18n="login">ورود</button>
+      <button id="tabRegister" class="flex-1 py-2.5 font-bold opacity-60" data-i18n="register">ثبت‌نام</button>
+    </div>
+    <div class="space-y-4">
+      <input id="authUser" class="input" data-i18n-ph="username" placeholder="نام کاربری">
+      <input id="authEmail" class="input hidden" type="email" data-i18n-ph="email" placeholder="ایمیل (اختیاری)">
+      <input id="authPass" class="input" type="password" data-i18n-ph="password" placeholder="رمز عبور">
+      <button id="authSubmit" class="btn-primary w-full py-3" data-i18n="login">ورود</button>
+      <p id="authMsg" class="text-sm text-center text-rose-400 min-h-5"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<section id="dashSection" class="max-w-6xl mx-auto px-4 pb-24 hidden">
+  <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
+    <h2 class="text-3xl font-black"><span data-i18n="dash_hello">سلام</span>، <span id="dashUsername" class="text-brand-400"></span> 👋</h2>
+    <button id="logoutBtn" class="btn-ghost text-rose-400" data-i18n="logout">خروج</button>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="card text-center"><div class="text-3xl font-black text-brand-400" id="stUsed">0</div><div class="text-xs opacity-60 mt-1" data-i18n="st_used">مصرف امروز</div></div>
+    <div class="card text-center"><div class="text-3xl font-black text-emerald-400" id="stRemain">0</div><div class="text-xs opacity-60 mt-1" data-i18n="st_remain">باقی‌مانده امروز</div></div>
+    <div class="card text-center"><div class="text-3xl font-black text-fuchsia-400" id="stQuota">0</div><div class="text-xs opacity-60 mt-1" data-i18n="st_quota">سهمیه روزانه</div></div>
+    <div class="card text-center"><div class="text-3xl font-black text-amber-400" id="stTotal">0</div><div class="text-xs opacity-60 mt-1" data-i18n="st_total">کل درخواست‌ها</div></div>
+  </div>
+
+  <div class="card mb-8">
+    <div class="flex items-center justify-between mb-2"><h3 class="font-bold" data-i18n="chart_title">مصرف ۷ روز گذشته</h3>
+      <span class="text-xs opacity-50" data-i18n="renew_note">تمدید خودکار: هر روز ۰۰:۰۰ UTC</span></div>
+    <canvas id="usageChart" height="90"></canvas>
+  </div>
+
+  <!-- API Keys -->
+  <div class="card mb-8">
+    <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+      <h3 class="font-bold text-lg" data-i18n="keys_title">کلیدهای API من</h3>
+      <div class="flex gap-2">
+        <input id="newKeyName" class="input !w-40 !py-2 text-sm" data-i18n-ph="key_name" placeholder="نام کلید">
+        <button id="createKeyBtn" class="btn-primary text-sm" data-i18n="key_create">ساخت کلید</button>
+      </div>
+    </div>
+    <div class="overflow-x-auto"><table class="w-full text-sm">
+      <thead><tr class="opacity-60"><th class="p-2 text-start" data-i18n="th_name">نام</th><th class="p-2 text-start" data-i18n="th_key">کلید</th><th class="p-2 text-start" data-i18n="th_reqs">درخواست‌ها</th><th class="p-2 text-start" data-i18n="th_status">وضعیت</th><th class="p-2"></th></tr></thead>
+      <tbody id="keysTable" class="[&_td]:p-2 [&_tr]:border-t [&_tr]:border-white/5"></tbody>
+    </table></div>
+  </div>
+
+  <!-- Playground -->
+  <div class="card">
+    <h3 class="font-bold text-lg mb-4" data-i18n="pg_title">تست زنده API</h3>
+    <div class="flex gap-2 flex-wrap mb-3">
+      <select id="pgKey" class="input !w-auto !py-2 text-sm font-mono"></select>
+      <input id="pgQuery" class="input flex-1 min-w-40 !py-2 text-sm" data-i18n-ph="hero_ph" placeholder="عبارت جست‌وجو…">
+      <input id="pgSite" class="input !w-44 !py-2 text-sm" dir="ltr" placeholder="site: example.com">
+      <select id="pgLang" class="input !w-28 !py-2 text-sm"><option value="auto">auto</option><option value="fa">fa</option><option value="en">en</option><option value="all">all</option></select>
+      <button id="pgRun" class="btn-primary text-sm" data-i18n="pg_run">اجرا</button>
+    </div>
+    <pre id="pgOutput" class="codeblock max-h-96 overflow-auto" dir="ltr">// results appear here…</pre>
+  </div>
+
+  <!-- Admin -->
+  <div id="adminPanel" class="hidden mt-10">
+    <h2 class="text-2xl font-black mb-6">🛡️ <span data-i18n="admin_title">پنل مدیریت</span></h2>
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="card text-center"><div class="text-2xl font-black text-brand-400" id="admUsers">0</div><div class="text-xs opacity-60" data-i18n="adm_users">کاربران</div></div>
+      <div class="card text-center"><div class="text-2xl font-black text-emerald-400" id="admKeys">0</div><div class="text-xs opacity-60" data-i18n="adm_keys">کلیدهای فعال</div></div>
+      <div class="card text-center"><div class="text-2xl font-black text-fuchsia-400" id="admReqs">0</div><div class="text-xs opacity-60" data-i18n="adm_reqs">درخواست امروز</div></div>
+    </div>
+    <div class="card overflow-x-auto"><table class="w-full text-sm">
+      <thead><tr class="opacity-60"><th class="p-2 text-start">ID</th><th class="p-2 text-start" data-i18n="th_name">نام</th><th class="p-2 text-start" data-i18n="st_used">مصرف امروز</th><th class="p-2 text-start" data-i18n="st_quota">سهمیه</th><th class="p-2 text-start" data-i18n="st_total">کل</th><th class="p-2 text-start" data-i18n="th_status">وضعیت</th><th class="p-2"></th></tr></thead>
+      <tbody id="adminTable" class="[&_td]:p-2 [&_tr]:border-t [&_tr]:border-white/5"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<footer class="border-t border-white/10 py-8 text-center text-sm opacity-50">
+  NovaSeek v1.0 — MIT License · Built with FastAPI + SearXNG · <span data-i18n="footer">ساخته‌شده با ❤️ برای جست‌وجوی آزاد</span>
+</footer>
+
+<div id="toast" class="fixed bottom-6 inset-x-0 mx-auto w-fit z-[100] px-5 py-3 rounded-xl glass font-bold text-sm opacity-0 pointer-events-none transition-all duration-300 translate-y-4"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

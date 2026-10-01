@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+data/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+tunnel.log
+app.log
+cloudflared

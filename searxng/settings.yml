@@ -1,0 +1,36 @@
+# SearXNG configuration for NovaSeek (local, JSON API enabled, no limits)
+use_default_settings: true
+
+server:
+  bind_address: "0.0.0.0"
+  port: 8080
+  secret_key: "novaseek-searxng-local-secret"
+  limiter: false
+  image_proxy: false
+  method: "GET"
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "auto"
+  formats:
+    - html
+    - json
+
+engines:
+  - name: google
+    disabled: false
+  - name: bing
+    disabled: false
+  - name: duckduckgo
+    disabled: false
+  - name: brave
+    disabled: false
+  - name: wikipedia
+    disabled: false
+  - name: startpage
+    disabled: false
+
+outgoing:
+  request_timeout: 6.0
+  max_request_timeout: 10.0

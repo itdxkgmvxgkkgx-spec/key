@@ -1,0 +1,113 @@
+name: NovaSeek Deploy & Keepalive
+
+on:
+  workflow_dispatch:        # manual run
+  workflow_run:             # self-restarting 6h loop
+    workflows: ["NovaSeek Deploy & Keepalive"]
+    types: [completed]
+
+permissions:
+  actions: write            # needed to trigger the next run via GH_PAT
+
+concurrency:
+  group: novaseek-deploy
+  cancel-in-progress: true
+
+env:
+  APP_PORT: 8000
+  SEARXNG_PORT: 8888
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355    # just under GitHub's 6h job cap
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install --no-cache-dir -r requirements.txt
+
+      - name: Restore persistent database
+        run: |
+          mkdir -p data
+          ghr="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          curl -sfL "$ghr/releases/latest/download/db.sqlite3" -o data/db.sqlite3 \
+            && echo "database restored from release" \
+            || echo "no previous database found — starting fresh"
+
+      - name: Start SearXNG search engine (Docker)
+        run: |
+          docker run -d --name searxng --restart unless-stopped \
+            -p ${{ env.SEARXNG_PORT }}:8080 \
+            -v ${{ github.workspace }}/searxng:/etc/searxng:ro \
+            searxng/searxng:latest
+          for i in $(seq 1 30); do
+            curl -sf "http://localhost:${{ env.SEARXNG_PORT }}/healthz" && break || sleep 2
+          done
+
+      - name: Start Cloudflare quick tunnel
+        run: |
+          curl -sfL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
+            -o cloudflared && chmod +x cloudflared
+          nohup ./cloudflared tunnel --no-autoupdate --url http://localhost:${{ env.APP_PORT }} \
+            > tunnel.log 2>&1 &
+
+      - name: Launch NovaSeek API
+        env:
+          APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+          OWNER_USERNAME: ${{ secrets.OWNER_USERNAME }}
+          OWNER_PASSWORD: ${{ secrets.OWNER_PASSWORD }}
+        run: nohup python run.py > app.log 2>&1 &
+
+      - name: Wait for public URL
+        run: |
+          for i in $(seq 1 30); do
+            URL=$(grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' tunnel.log | head -1)
+            [ -n "$URL" ] && break || sleep 2
+          done
+          [ -z "$URL" ] && { echo "tunnel failed"; cat tunnel.log; exit 1; }
+          echo "PUBLIC_URL=$URL" >> "$GITHUB_ENV"
+          curl -sf "$URL/api/health"
+
+      - name: Announce service URL
+        run: |
+          {
+            echo "## 🚀 NovaSeek is LIVE"
+            echo ""
+            echo "**Public URL:** ${{ env.PUBLIC_URL }}"
+            echo "**Dashboard:** ${{ env.PUBLIC_URL }}/"
+            echo "**Health:** ${{ env.PUBLIC_URL }}/api/health"
+            echo "**API docs:** ${{ env.PUBLIC_URL }}/docs"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep alive (~5h50m) with heartbeat
+        run: |
+          END=$((SECONDS + 21000))
+          while [ $SECONDS -lt $END ]; do
+            sleep 300
+            curl -sf "${{ env.PUBLIC_URL }}/api/health" > /dev/null && \
+              echo "[$(date -u +%H:%M:%S)] heartbeat OK" || echo "heartbeat failed"
+          done
+
+      - name: Backup database to release
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          set -e
+          TAG="db-backup"
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" data/db.sqlite3 \
+            --title "NovaSeek DB backup" \
+            --notes "Auto-backup $(date -u +'%Y-%m-%d %H:%M UTC') — restored automatically by the next run"
+
+      - name: Trigger next run (6h loop)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: gh workflow run deploy.yml
